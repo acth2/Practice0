@@ -1,29 +1,40 @@
 package fr.acth2.p0pp;
 
+import fr.acth2.p0pp.commands.AcceptCommand;
 import fr.acth2.p0pp.commands.DuelCommand;
+import fr.acth2.p0pp.listener.DuelDeathChecker;
+import fr.acth2.p0pp.objects.Arena;
+import fr.acth2.p0pp.utils.References;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class Main extends JavaPlugin {
-    private Player player1;
-    private Player player2;
-    private Location player1OriginalLoc;
-    private Location player2OriginalLoc;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-    private Location arenaPlayer1Loc;
-    private Location arenaPlayer2Loc;
+public class Main extends JavaPlugin {
+    public List<Arena> arenas = new ArrayList<>();
+    private static Main instance;
+    private Map<Player, Player> pendingDuels = new HashMap<>();
+
 
     @Override
     public void onEnable() {
+        instance = this;
+        Bukkit.getPluginManager().registerEvents(new DuelDeathChecker(), this);
+        getCommand("accept").setExecutor(new AcceptCommand(this));
+        getCommand("duel").setExecutor(new DuelCommand(this));
         getLogger().info("Plugin Practice - ACTIVÉ");
 
         World world = Bukkit.getWorld("world");
         if (world != null) {
-            arenaPlayer1Loc = new Location(world, 0, 100, 0);
-            arenaPlayer2Loc = new Location(world, 100, 100, 0);
+            arenas.add(new Arena(1, new Location(world, 100, 100, 100), new Location(world, 100, 100, -100)));
+            arenas.add(new Arena(2, new Location(world, -100, 100, 100), new Location(world, -100, 100, -100)));
+            arenas.add(new Arena(3, new Location(world, 0, 100, 200), new Location(world, 0, 100, -200)));
         } else {
             getLogger().severe("Le monde principal 'world' n'existe pas !");
             Bukkit.getPluginManager().disablePlugin(this);
@@ -33,62 +44,51 @@ public class Main extends JavaPlugin {
         getCommand("duel").setExecutor(new DuelCommand(this));
     }
 
+    public Arena getAvailableArena() {
+        for (Arena arena : arenas) {
+            if (!arena.hasStarted()) {
+                return arena;
+            }
+        }
+        return null;
+    }
+
+    public void startDuel(Player p1, Player p2) {
+        Arena arena = getAvailableArena();
+        if (arena == null) {
+            p1.sendMessage("§cNo available arenas!");
+            p2.sendMessage("§cNo available arenas!");
+            return;
+        }
+
+        arena.startDuel(p1, p2);
+        References.addPlayersToDuel(p1, p2);
+    }
+
+    public static Main getInstance() {
+        return instance;
+    }
+
+
     @Override
     public void onDisable() {
         getLogger().info("Plugin Practice - DÉSACTIVÉ");
-        if (isDuelActive()) {
-            endPracticeMatch();
+        References.clearAllDuels();
+    }
+
+    public void addPendingDuel(Player challenger, Player target) {
+        pendingDuels.put(target, challenger);
+    }
+
+    public void acceptDuel(Player target) {
+        Player challenger = pendingDuels.get(target);
+        if (challenger != null && challenger.isOnline()) {
+            startDuel(challenger, target);
+            pendingDuels.remove(target);
+        } else {
+            target.sendMessage("§cLe défi a expiré ou le joueur s'est déconnecté !");
         }
     }
 
-    public void startPracticeMatch(Player p1, Player p2) {
-        this.player1 = p1;
-        this.player2 = p2;
 
-        this.player1OriginalLoc = p1.getLocation();
-        this.player2OriginalLoc = p2.getLocation();
-
-        try {
-            player1.teleport(arenaPlayer1Loc);
-            player2.teleport(arenaPlayer2Loc);
-
-            player1.sendMessage("§aDuel commencé ! Vous êtes dans l'arène.");
-            player2.sendMessage("§aDuel commencé ! Vous êtes dans l'arène.");
-
-            getLogger().info("Duel entre " + player1.getName() + " et " + player2.getName() + " a commencé");
-        } catch (Exception e) {
-            getLogger().severe("Erreur de téléportation: " + e.getMessage());
-            player1.sendMessage("§cErreur lors du démarrage du duel !");
-            player2.sendMessage("§cErreur lors du démarrage du duel !");
-        }
-    }
-
-    public void endPracticeMatch() {
-        if (!isDuelActive()) return;
-
-        try {
-            player1.teleport(player1OriginalLoc);
-            player2.teleport(player2OriginalLoc);
-
-            player1.sendMessage("§aDuel terminé ! Vous avez été ramené à votre position initiale.");
-            player2.sendMessage("§aDuel terminé ! Vous avez été ramené à votre position initiale.");
-
-            getLogger().info("Duel entre " + player1.getName() + " et " + player2.getName() + " est terminé");
-        } catch (Exception e) {
-            getLogger().severe("Erreur lors de la fin du duel: " + e.getMessage());
-        } finally {
-            player1 = null;
-            player2 = null;
-            player1OriginalLoc = null;
-            player2OriginalLoc = null;
-        }
-    }
-
-    public boolean isInDuel(Player player) {
-        return isDuelActive() && (player.equals(player1) || player.equals(player2));
-    }
-
-    private boolean isDuelActive() {
-        return player1 != null && player2 != null;
-    }
 }

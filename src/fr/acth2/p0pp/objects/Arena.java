@@ -4,94 +4,70 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
-
 public class Arena {
+    private final int id;
+    private final Location player1Spawn;
+    private final Location player2Spawn;
+    private boolean started;
+    private Player player1;
+    private Player player2;
 
-    private static int id;
-    private static Location player1spawn;
-    private static Location player2spawn;
-    private static boolean start;
-    private static Player player1;
-    private static Player player2;
-    public Arena(int id, Location player1spawn, Location player2spawn, boolean start) {
-        id = this.id;
-        player1spawn = this.player1spawn;
-        player2spawn = this.player2spawn;
-        start = this.start;
+    public Arena(int id, Location player1Spawn, Location player2Spawn) {
+        this.id = id;
+        this.player1Spawn = player1Spawn;
+        this.player2Spawn = player2Spawn;
+        this.started = false;
     }
 
-    public void startDuel() {
-        if (player1 != null && player2 != null) {
-            player1.teleport(player1spawn);
-            player2.teleport(player2spawn);
-            sendMessages(null);
-        }
-     }
+    public void startDuel(Player p1, Player p2) {
+        this.player1 = p1;
+        this.player2 = p2;
+        this.started = true;
 
-     public void sendMessages(Player definedWinner) {
-        if (definedWinner == null) {
-            player1.sendMessage(ChatColor.GOLD + "===================");
-            player1.sendMessage(ChatColor.YELLOW + "Player " + player1.getName() + " (you)" + ChatColor.GRAY + " against");
-            player1.sendMessage(ChatColor.YELLOW + "Player " + player2.getName());
-            player1.sendMessage(ChatColor.GRAY +  "&oMay you be the winner of this fight");
-            player1.sendMessage(ChatColor.GOLD + "===================");
-
-            player2.sendMessage(ChatColor.GOLD + "===================");
-            player2.sendMessage(ChatColor.YELLOW + "Player " + player2.getName() + " (you)" + ChatColor.GRAY + " against");
-            player2.sendMessage(ChatColor.YELLOW + "Player " + player1.getName());
-            player2.sendMessage(ChatColor.GRAY +  "&oMay you be the winner of this fight");
-            player2.sendMessage(ChatColor.GOLD + "===================");
-        } else {
-            if (definedWinner == player1) {
-                player1.sendMessage(ChatColor.GOLD + "=================== RESULTS");
-                player1.sendMessage(ChatColor.GREEN + "Player " + player1.getName() + " won");
-                player1.sendMessage(ChatColor.RED + "Player " + player2.getName() + " lose");
-                player1.sendMessage(ChatColor.GRAY +  "&oYou won the fight!");
-                player1.sendMessage(ChatColor.GOLD + "=================== RESULTS");
-
-                player2.sendMessage(ChatColor.GOLD + "=================== RESULTS");
-                player2.sendMessage(ChatColor.GREEN + "Player " + player1.getName() + " won");
-                player2.sendMessage(ChatColor.RED + "Player " + player2.getName() + " lose");
-                player2.sendMessage(ChatColor.GRAY +  "&oYou lose the fight!");
-                player2.sendMessage(ChatColor.GOLD + "=================== RESULTS");
-            } else {
-                player2.sendMessage(ChatColor.GOLD + "=================== RESULTS");
-                player2.sendMessage(ChatColor.GREEN + "Player " + player2.getName() + " won");
-                player2.sendMessage(ChatColor.RED + "Player " + player1.getName() + " lose");
-                player2.sendMessage(ChatColor.GRAY +  "&oYou won the fight!");
-                player2.sendMessage(ChatColor.GOLD + "=================== RESULTS");
-
-                player1.sendMessage(ChatColor.GOLD + "=================== RESULTS");
-                player1.sendMessage(ChatColor.GREEN + "Player " + player2.getName() + " won");
-                player1.sendMessage(ChatColor.RED + "Player " + player1.getName() + " lose");
-                player1.sendMessage(ChatColor.GRAY +  "&oYou lose the fight!");
-                player1.sendMessage(ChatColor.GOLD + "=================== RESULTS");
-            }
-        }
-     }
-
-    public boolean hasStarted() {
-        return start;
+        player1.teleport(player1Spawn);
+        player2.teleport(player2Spawn);
+        sendStartMessages();
     }
 
-    public void setCurrentPlayers(@Nullable  Player player1, @Nullable Player player2) {
-        if (player1 != null) {
-            player1 = this.player1;
-        }
-
-        if (player2 != null) {
-            player2 = this.player2;
-        }
+    private void sendStartMessages() {
+        player1.sendMessage(ChatColor.GOLD + "Duel started in Arena #" + id);
+        player2.sendMessage(ChatColor.GOLD + "Duel started in Arena #" + id);
     }
 
-    public boolean hasEnded() {
-        return  start == true ? true : false;
+    public void endDuel(Player winner) {
+        sendEndMessages(winner);
+        clear();
+    }
+
+    private void sendEndMessages(Player winner) {
+        String winnerMsg = ChatColor.GREEN + winner.getName() + " won the duel!";
+        String loserMsg = ChatColor.RED + "You lost the duel!";
+
+        winner.sendMessage(winnerMsg);
+        (winner == player1 ? player2 : player1).sendMessage(loserMsg);
     }
 
     public void clear() {
         player1 = null;
         player2 = null;
-        start = false;
+        started = false;
+    }
+
+
+
+    public boolean hasStarted() {
+        return started;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Player getPlayer1() {
+        return player1;
+    }
+
+    public Player getPlayer2() {
+        return player2;
     }
 }
