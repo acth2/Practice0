@@ -27,21 +27,20 @@ public class Main extends JavaPlugin {
         instance = this;
         Bukkit.getPluginManager().registerEvents(new DuelDeathChecker(), this);
         getCommand("accept").setExecutor(new AcceptCommand(this));
-        getCommand("duel").setExecutor(new DuelCommand(this));
+        getCommand("duel").setExecutor(new DuelCommand(this)); // ONLY KEEP THIS ONE
         getLogger().info("Plugin Practice - ACTIVÉ");
 
         World world = Bukkit.getWorld("world");
         if (world != null) {
-            arenas.add(new Arena(1, new Location(world, 100, 100, 100), new Location(world, 100, 100, -100)));
-            arenas.add(new Arena(2, new Location(world, -100, 100, 100), new Location(world, -100, 100, -100)));
-            arenas.add(new Arena(3, new Location(world, 0, 100, 200), new Location(world, 0, 100, -200)));
+            arenas.add(new Arena(1, new Location(world, 279, 70, 569), new Location(world, 279, 70, 478)));
+            arenas.add(new Arena(2, new Location(world, 186, 70, 569), new Location(world, 186, 70, 478)));
+            arenas.add(new Arena(3, new Location(world, 374, 70, 569), new Location(world, 374, 70, 478)));
+            arenas.add(new Arena(4, new Location(world, 334, 71, 327), new Location(world, 334, 71, 418)));
         } else {
             getLogger().severe("Le monde principal 'world' n'existe pas !");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-
-        getCommand("duel").setExecutor(new DuelCommand(this));
     }
 
     public Arena getAvailableArena() {

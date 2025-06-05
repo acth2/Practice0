@@ -59,7 +59,7 @@ public class DuelCommand implements CommandExecutor {
         Arena arena = findPlayerArena(player);
         if (arena != null) {
             Player opponent = (player.equals(arena.getPlayer1())) ? arena.getPlayer2() : arena.getPlayer1();
-            arena.endDuel(player); // Player who typed /duel end is considered the loser
+            arena.endDuel(player);
             References.removePlayersFromDuel(player, opponent);
             player.sendMessage("§aVous avez abandonné le duel !");
             opponent.sendMessage("§cVotre adversaire a abandonné le duel !");

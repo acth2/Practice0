@@ -1,7 +1,6 @@
 name: Practice0
 version: 1.0.0
 main: fr.acth2.p0pp.Main
-
 api-version: 1.13
 author: AcTh2
 description: Practice0 Plugin
@@ -11,4 +10,12 @@ authors: [AcTh2]
 commands:
   duel:
     description: Commande pour les duels en practice
-    usage: /duel <joueur>
+    usage: |
+      /duel <joueur> - Défier un joueur
+      /duel end - Terminer le duel
+      /duel list - Voir les arènes disponibles
+    aliases: [duel]
+  accept:
+    description: Accepter un duel
+    usage: /accept <joueur>
+    aliases: [accept]
